@@ -3,12 +3,12 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = exports.bind = exports.debounce = exports.memoize = void 0;
+exports.default = exports.bind = exports.debounce = exports.memoize = void 0;
 var EMPTY = {};
 var HOP = Object.prototype.hasOwnProperty;
 var fns = {
   /**  let cachedFn = memoize(originalFn); */
-  memoize: function memoize(fn) {
+  memoize(fn) {
     var opt = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : EMPTY;
     var cache = opt.cache || {};
     return function () {
@@ -23,7 +23,7 @@ var fns = {
   },
 
   /** let throttled = debounce(10, console.log); */
-  debounce: function debounce(fn, opts) {
+  debounce(fn, opts) {
     if (typeof opts === 'function') {
       var p = fn;
       fn = opts;
@@ -41,21 +41,25 @@ var fns = {
 
       args = a;
       context = this;
-      if (!timer) timer = setTimeout(function () {
+      if (!timer) timer = setTimeout(() => {
         fn.apply(context, args);
         args = context = timer = null;
       }, delay);
     };
   },
-  bind: function bind(target, key, _ref) {
-    var fn = _ref.value;
+
+  bind(target, key, _ref) {
+    var {
+      value: fn
+    } = _ref;
     // In IE11 calling Object.defineProperty has a side-effect of evaluating the
     // getter for the property which is being replaced. This causes infinite
     // recursion and an "Out of stack space" error.
     var definingProperty = false;
     return {
       configurable: true,
-      get: function get() {
+
+      get() {
         if (definingProperty) {
           return fn;
         }
@@ -63,30 +67,28 @@ var fns = {
         var value = fn.bind(this);
         definingProperty = true;
         Object.defineProperty(this, key, {
-          value: value,
+          value,
           configurable: true,
           writable: true
         });
         definingProperty = false;
         return value;
       }
+
     };
   }
+
 };
 var memoize = multiMethod(fns.memoize),
     debounce = multiMethod(fns.debounce),
-    bind = multiMethod(function (f, c) {
-  return f.bind(c);
-}, function () {
-  return fns.bind;
-});
+    bind = multiMethod((f, c) => f.bind(c), () => fns.bind);
 exports.bind = bind;
 exports.debounce = debounce;
 exports.memoize = memoize;
 var _default = {
-  memoize: memoize,
-  debounce: debounce,
-  bind: bind
+  memoize,
+  debounce,
+  bind
 };
 /** Creates a function that supports the following calling styles:
  *	d() - returns an unconfigured decorator
@@ -112,14 +114,14 @@ var _default = {
  *		}
  */
 
-exports["default"] = _default;
+exports.default = _default;
 
 function multiMethod(inner, deco) {
   deco = deco || inner.decorate || decorator(inner);
   var d = deco();
   return function () {
     var l = arguments.length;
-    return (l < 2 ? deco : l > 2 ? d : inner).apply(void 0, arguments);
+    return (l < 2 ? deco : l > 2 ? d : inner)(...arguments);
   };
 }
 /** Returns function supports the forms:
@@ -129,10 +131,8 @@ function multiMethod(inner, deco) {
 
 
 function decorator(fn) {
-  return function (opt) {
-    return typeof opt === 'function' ? fn(opt) : function (target, key, desc) {
-      desc.value = fn(desc.value, opt, target, key, desc);
-    };
+  return opt => typeof opt === 'function' ? fn(opt) : (target, key, desc) => {
+    desc.value = fn(desc.value, opt, target, key, desc);
   };
 }
 //# sourceMappingURL=decko.js.map
